@@ -1,11 +1,12 @@
 import os
 import json
 import argparse
-import time
+import time,sys
 from typing import Optional, Dict
-
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..','..')))
 from doc2json.tex2json.tex_to_xml import convert_latex_to_s2orc_json
 from doc2json.tex2json.xml_to_json import convert_latex_xml_to_s2orc_json
+ 
 
 
 BASE_TEMP_DIR = 'temp'
