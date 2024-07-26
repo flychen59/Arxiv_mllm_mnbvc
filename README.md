@@ -82,7 +82,7 @@ def convert_to_target_format_cyp(data, template):
                     new_entry["额外信息"] = filtered_entries 
                     result.append(copy.deepcopy(new_entry))
                
-            
+            ####提取公式####
             for ref in para["cite_spans"]:
                 if ref["ref_id"] in ref_entries:  
                     new_entry = copy.deepcopy(template)
@@ -95,13 +95,10 @@ def convert_to_target_format_cyp(data, template):
 
             ####提取公式####
             for ref in para["eq_spans"]:
-                if ref["ref_id"] in ref_entries:  
                     new_entry = copy.deepcopy(template)
-                    new_entry["数据类型"] =ref_entries[ref["ref_id"]]['type_str']   
+                    new_entry["数据类型"] ='formula'
                     new_entry["块id"] = section
-                    new_entry["文本"] = ref_entries[ref["ref_id"]]['text'] 
-                    filtered_entries = {k: v for k, v in ref_entries[ref["ref_id"]].items() if k != 'text' and 'ref_id' }
-                    new_entry["额外信息"] = filtered_entries
+                    new_entry["文本"] =str(ref)
                     result.append(copy.deepcopy(new_entry))
     
     return result
@@ -117,6 +114,7 @@ def convert_to_target_format_cyp(data, template):
 | 表格       |  "数据类型":"table","额外信息":{"content":[],"fig_num":null,"html":"","num":"1","parent":null,"type_str":"table","uris":null}}| 
 | 网址   |  "数据类型":"footnote","文本":"https://colab.research.google.com/" | 
 | 标题  |  "数据类型":"section","文本":"Related Work" | 
+| 公式  |  "数据类型":"formula","文本":'{\'start\': 297, \'end\': 308, \'text\': \'n  test  \', \'latex\': \'n_{\\\\textrm {test}}\', \'mathml\': \'<math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>n</mi><mrow><mi>\\\\textrm</mi><mrow><mi>t</mi><mi>e</mi><mi>s</mi><mi>t</mi></mrow></mrow></msub></mrow></math>\', \'ref_id\': \'INLINEFORM2\'}'" | 
 
       
 
