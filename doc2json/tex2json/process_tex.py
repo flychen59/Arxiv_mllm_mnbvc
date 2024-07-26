@@ -60,7 +60,6 @@ def process_tex_stream(
     else:
         return []
 
-
 def process_tex_file(
         input_file: str,
         temp_dir: str=BASE_TEMP_DIR,
@@ -109,8 +108,6 @@ def process_tex_file(
 
     return output_file,output_file
 
-
-
 def read_image(image_path):
     # 打开图像文件
     if image_path.lower().endswith('.pdf'):
@@ -125,7 +122,6 @@ def read_image(image_path):
         image.save(img_byte_arr, format=image.format)
         img_byte_arr = img_byte_arr.getvalue()
     return img_byte_arr
-
 
 def save_to_parquet(data, output_path):
     df = pd.DataFrame(data)
@@ -175,8 +171,8 @@ def convert_to_target_format_cyp(data, template):
                     new_entry["数据类型"] =ref_entries[ref["ref_id"]]['type_str']
                     new_entry["块id"] = section
                     if new_entry["数据类型"]=='figure':
-                        path=os.path.join('s2orc-doc2json/temp_dir/latex',data['paper_id'],"".join(ref_entries[ref["ref_id"]]["uris"]))
-                        # path=os.path.join('./temp_dir/latex',data['paper_id'],"".join(ref_entries[ref["ref_id"]]["uris"]))
+                        # path=os.path.join('s2orc-doc2json/temp_dir/latex',data['paper_id'],"".join(ref_entries[ref["ref_id"]]["uris"]))
+                        path=os.path.join('./temp_dir/latex',data['paper_id'],"".join(ref_entries[ref["ref_id"]]["uris"]))
                         new_entry["图片"]=read_image(path)   
                     new_entry["文本"] = ref_entries[ref["ref_id"]]['text']
                     filtered_entries = {k: v for k, v in ref_entries[ref["ref_id"]].items() if k != 'text' and 'ref_id' }
@@ -195,14 +191,12 @@ def convert_to_target_format_cyp(data, template):
                     result.append(copy.deepcopy(new_entry))
             
             for ref in para["eq_spans"]:
-                if ref["ref_id"] in ref_entries:  
                     new_entry = copy.deepcopy(template)
-                    new_entry["数据类型"] =ref_entries[ref["ref_id"]]['type_str']   
+                    new_entry["数据类型"] ='formula'
                     new_entry["块id"] = section
-                    new_entry["文本"] = ref_entries[ref["ref_id"]]['text'] 
-                    filtered_entries = {k: v for k, v in ref_entries[ref["ref_id"]].items() if k != 'text' and 'ref_id' }
-                    new_entry["额外信息"] = filtered_entries
+                    new_entry["文本"] =str(ref)
                     result.append(copy.deepcopy(new_entry))
+       
     
     return result
 
@@ -240,6 +234,7 @@ if __name__ == '__main__':
         data = json.load(file)
         result = convert_to_target_format_cyp(data, template)
         
+       
     output_json_path = os.path.splitext(output_file)[0] + ".parquet"
     save_to_parquet(result, output_json_path)
     print("runtime: %s seconds " % (runtime))
