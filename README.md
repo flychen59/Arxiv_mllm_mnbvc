@@ -110,12 +110,15 @@ def convert_to_target_format_cyp(data, template):
 结果如下所示：
 {"文件md5":null,"文件id":"2004.14974","页码":null,"块id":"title","文本":"Fact or Fiction: Verifying Scientific Claims","图片":null,"处理时间":"2024-07-21T16:39:40.100123Z","数据类型":"text","bounding_box":null,"额外信息":null}
 
-提取的表格信息：
-| Name      | Age | Occupation  |
-|-----------|-----|-------------|
-| Alice     |  30 | Engineer    |
-| Bob       |  24 | Designer    |
-| Charlie   |  29 | Teacher     |
+提取多模态信息一览：
+| 类型      | Caption |
+|-----------|-----|
+| 图片     |"数据类型":"figure","文本":"A SciFact claim refuted by evidence. To refute this claim,....","图片": {"0":137,"1":80,"2":78,"3":71,"4":13,"5":10,"6":26,"7":10,"8":0} ,"数据类型":"figure"| 
+| 表格       |  "数据类型":"table","额外信息":{"content":[],"fig_num":null,"html":"","num":"1","parent":null,"type_str":"table","uris":null}}| 
+| 网址   |  "数据类型":"footnote","文本":"https://colab.research.google.com/" | 
+| 标题  |  "数据类型":"section","文本":"Related Work" | 
+
+      
 
 图文通用语料的格式说明：
 文件md5: 这个字段存储文件的MD5哈希值。MD5是一种广泛使用的哈希函数，它产生一个128位（16字节）的哈希值，通常用于确保数据的完整性。在这里，它可以用来唯一标识文件，或者检查文件是否被更改。
