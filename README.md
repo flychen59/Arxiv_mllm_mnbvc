@@ -26,8 +26,96 @@ python doc2json/tex2json/process_tex.py -i test/latex/1911.02782.gz -t temp_dir/
 ```
 结果可以在output_dir查看，其中输入文件名的json文件是使用Grobid解析的结果，parquet文件为最终结果。
 
+ 
+## json中提取信息的方法：
+```
+def convert_to_target_format_cyp(data, template):
+    result=[]
+    template["文件id"] = data['paper_id']
+    template["处理时间"] = data["header"]["date_generated"]
+    
+    ## step 1 bod_text map to section
+    doc_parse = data["latex_parse"] # todo other doc types
+    body_text = doc_parse["body_text"]
+    body_dict = OrderedDict() # key: section, value: text
+    for text_dict in body_text:
+        if text_dict["section"] in body_dict:
+            body_dict[text_dict["section"]].append(text_dict) # keep all info
+        else:
+            body_dict[text_dict["section"]] = [text_dict] # keep all info
+    
+    ## step 2 build list
+    new_entry = copy.deepcopy(template)
+    new_entry["块id"] = 'title'
+    new_entry["文本"] = data["title"]
+    new_entry["数据类型"] = 'text' 
+    result.append(new_entry)
+    
+    new_entry = copy.deepcopy(template)
+    new_entry["数据类型"] = 'text' 
+    new_entry["块id"] = "abstract"
+    new_entry["文本"] = data["abstract"]
+    result.append(new_entry)
+    
+    
+    ref_entries = doc_parse["ref_entries"]
+    for section, para_list in body_dict.items():
+        template["块id"] = section
+        for para in para_list:     
+            new_entry = copy.deepcopy(template)
+            new_entry["文本"] = para['text'] 
+            new_entry["数据类型"]='text'
+            result.append(copy.deepcopy(new_entry))
+
+            ####提取图片信息####
+            for ref in para["ref_spans"]:
+                if "ref_id" in ref and ref["ref_id"] in ref_entries:  
+                    new_entry = copy.deepcopy(template)
+                    new_entry["数据类型"] =ref_entries[ref["ref_id"]]['type_str']
+                    new_entry["块id"] = section
+                    if new_entry["数据类型"]=='figure':
+                        path=os.path.join('s2orc-doc2json/temp_dir/latex',data['paper_id'],"".join(ref_entries[ref["ref_id"]]["uris"]))
+                        # path=os.path.join('./temp_dir/latex',data['paper_id'],"".join(ref_entries[ref["ref_id"]]["uris"]))
+                        new_entry["图片"]=read_image(path)   
+                    new_entry["文本"] = ref_entries[ref["ref_id"]]['text']
+                    filtered_entries = {k: v for k, v in ref_entries[ref["ref_id"]].items() if k != 'text' and 'ref_id' }
+                    new_entry["额外信息"] = filtered_entries 
+                    result.append(copy.deepcopy(new_entry))
+               
+            
+            for ref in para["cite_spans"]:
+                if ref["ref_id"] in ref_entries:  
+                    new_entry = copy.deepcopy(template)
+                    new_entry["数据类型"] =ref_entries[ref["ref_id"]]['type_str']   
+                    new_entry["块id"] = section
+                    new_entry["文本"] = ref_entries[ref["ref_id"]]['text'] 
+                    filtered_entries = {k: v for k, v in ref_entries[ref["ref_id"]].items() if k != 'text' and 'ref_id' }
+                    new_entry["额外信息"] = filtered_entries
+                    result.append(copy.deepcopy(new_entry))
+
+            ####提取公式####
+            for ref in para["eq_spans"]:
+                if ref["ref_id"] in ref_entries:  
+                    new_entry = copy.deepcopy(template)
+                    new_entry["数据类型"] =ref_entries[ref["ref_id"]]['type_str']   
+                    new_entry["块id"] = section
+                    new_entry["文本"] = ref_entries[ref["ref_id"]]['text'] 
+                    filtered_entries = {k: v for k, v in ref_entries[ref["ref_id"]].items() if k != 'text' and 'ref_id' }
+                    new_entry["额外信息"] = filtered_entries
+                    result.append(copy.deepcopy(new_entry))
+    
+    return result
+```
+
 结果如下所示：
 {"文件md5":null,"文件id":"2004.14974","页码":null,"块id":"title","文本":"Fact or Fiction: Verifying Scientific Claims","图片":null,"处理时间":"2024-07-21T16:39:40.100123Z","数据类型":"text","bounding_box":null,"额外信息":null}
+
+提取的表格信息：
+| Name      | Age | Occupation  |
+|-----------|-----|-------------|
+| Alice     |  30 | Engineer    |
+| Bob       |  24 | Designer    |
+| Charlie   |  29 | Teacher     |
 
 图文通用语料的格式说明：
 文件md5: 这个字段存储文件的MD5哈希值。MD5是一种广泛使用的哈希函数，它产生一个128位（16字节）的哈希值，通常用于确保数据的完整性。在这里，它可以用来唯一标识文件，或者检查文件是否被更改。
